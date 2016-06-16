@@ -13,7 +13,7 @@ import (
 	"os/signal"
 	"sync"
 
-	cachet "github.com/castawaylabs/cachet-monitor"
+	cachet "../"
 )
 
 var configPath string
@@ -49,11 +49,11 @@ func main() {
 		panic(err)
 	}
 
-	cfg.Logger.Printf("System: %s\nAPI: %s\nMonitors: %d\n\n", cfg.SystemName, cfg.APIUrl, len(cfg.Monitors))
+	cfg.Logger.Printf("\nSystem: %s\nAPI: %s\nMonitors: %d\n\n", cfg.SystemName, cfg.APIUrl, len(cfg.Monitors))
 
 	wg := &sync.WaitGroup{}
 	for _, mon := range cfg.Monitors {
-		cfg.Logger.Printf(" Starting %s: %d seconds check interval\n - %v %s", mon.Name, mon.CheckInterval, mon.Method, mon.URL)
+		cfg.Logger.Printf("\nStarting %s: %d seconds check interval\n- %v %s (%d second/s timeout)\n\n", mon.Name, mon.CheckInterval, mon.Method, mon.URL, mon.HttpTimeout)
 
 		// print features
 		if mon.ExpectedStatusCode > 0 {

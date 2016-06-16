@@ -12,7 +12,7 @@ type Incident struct {
 	Name    string `json:"name"`
 	Message string `json:"message"`
 	Status  int    `json:"status"`
-	Visible int    `json"visible"`
+	Visible int    `json:"visible"`
 	Notify  bool   `json:"notify"`
 
 	ComponentID     int `json:"component_id"`
@@ -25,11 +25,15 @@ func (incident *Incident) Send(cfg *CachetMonitor) error {
 	case 1, 2, 3:
 		// partial outage
 		incident.ComponentStatus = 3
+		incident.Name = "Partial Outage - Investigating"
+		incident.Message = "\nWe are investigating a minor service outage."
 
 		componentStatus, err := incident.GetComponentStatus(cfg)
 		if componentStatus == 3 {
 			// major outage
 			incident.ComponentStatus = 4
+			incident.Name = "Major Outage - Investigating"
+			incident.Message = "\nWe are investigating a major service outage."
 		}
 
 		if err != nil {
@@ -38,7 +42,10 @@ func (incident *Incident) Send(cfg *CachetMonitor) error {
 	case 4:
 		// fixed
 		incident.ComponentStatus = 1
+		incident.Name = "Operational - Fixed"
+		incident.Message = "\n:thumbsup: Everything operating normally."
 	}
+	incident.Visible = 1
 
 	requestType := "POST"
 	requestURL := "/incidents"
@@ -83,14 +90,15 @@ func (incident *Incident) GetComponentStatus(cfg *CachetMonitor) (int, error) {
 
 	var data struct {
 		Component struct {
-			Status int `json:"status"`
+			Status string `json:"status"`
 		} `json:"data"`
 	}
 	if err := json.Unmarshal(body, &data); err != nil {
 		return 0, fmt.Errorf("Cannot parse component body: %v. Err = %v", string(body), err)
 	}
 
-	return data.Component.Status, nil
+	status, err := strconv.Atoi(data.Component.Status)
+	return status, nil
 }
 
 // SetInvestigating sets status to Investigating
