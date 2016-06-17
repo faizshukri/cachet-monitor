@@ -13,5 +13,13 @@
       "expected_status_code": 200,
       "strict_tls": true
     }
+  ],
+  "messages": [
+    {
+      "incident": 4,
+      "status": 1,
+      "title": "Operational",
+      "message": ":thumbsup: Everything operating normally."
+    }
   ]
 }

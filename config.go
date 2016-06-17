@@ -17,6 +17,7 @@ type CachetMonitor struct {
 	InsecureAPI bool   `json:"insecure_api"`
 
 	Monitors []*Monitor `json:"monitors"`
+	Messages []*Message `json:"messages"`
 }
 
 func (cfg *CachetMonitor) ValidateConfiguration() error {

@@ -164,9 +164,7 @@ func (monitor *Monitor) AnalyseData() {
 
 	if t > monitor.Threshold && monitor.incident == nil {
 		monitor.incident = &Incident{
-			Name:        monitor.Name + " - " + monitor.config.SystemName,
 			ComponentID: monitor.ComponentID,
-			Message:     monitor.Name + " check **failed** - " + time.Now().Format(DefaultTimeFormat),
 			Notify:      true,
 		}
 
@@ -184,14 +182,16 @@ func (monitor *Monitor) AnalyseData() {
 
 		// resolve incident
 		monitor.incident = &Incident{
-			Name:        monitor.Name + " - " + monitor.config.SystemName,
 			ComponentID: monitor.ComponentID,
-			Message:     "",
 			Notify:      true,
 		}
+		// set fixed status
 		monitor.incident.SetFixed()
-		monitor.incident.Send(monitor.config)
+		if err := monitor.incident.Send(monitor.config); err != nil {
+			monitor.config.Logger.Printf("Error sending incident: %v\n", err)
+		}
 
+		// reset
 		monitor.lastFailReason = ""
 		monitor.incident = nil
 	}

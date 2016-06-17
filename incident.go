@@ -17,23 +17,24 @@ type Incident struct {
 
 	ComponentID     int `json:"component_id"`
 	ComponentStatus int `json:"component_status"`
+
+	StatusName string
 }
 
 // Send - Create or Update incident
 func (incident *Incident) Send(cfg *CachetMonitor) error {
+
+	incident.Visible = 1
+
 	switch incident.Status {
 	case 1, 2, 3:
 		// partial outage
 		incident.ComponentStatus = 3
-		incident.Name = "Partial Outage - Investigating"
-		incident.Message = "\nWe are investigating a minor service outage."
 
 		componentStatus, err := incident.GetComponentStatus(cfg)
 		if componentStatus == 3 {
 			// major outage
 			incident.ComponentStatus = 4
-			incident.Name = "Major Outage - Investigating"
-			incident.Message = "\nWe are investigating a major service outage."
 		}
 
 		if err != nil {
@@ -42,10 +43,11 @@ func (incident *Incident) Send(cfg *CachetMonitor) error {
 	case 4:
 		// fixed
 		incident.ComponentStatus = 1
-		incident.Name = "Operational - Fixed"
-		incident.Message = "\n:thumbsup: Everything operating normally."
 	}
-	incident.Visible = 1
+
+	message := cfg.Message(incident.Status, incident.ComponentStatus)
+	incident.Name = message.Title + " - " + incident.StatusName
+	incident.Message = message.Message
 
 	requestType := "POST"
 	requestURL := "/incidents"
@@ -104,19 +106,23 @@ func (incident *Incident) GetComponentStatus(cfg *CachetMonitor) (int, error) {
 // SetInvestigating sets status to Investigating
 func (incident *Incident) SetInvestigating() {
 	incident.Status = 1
+	incident.StatusName = "Investigating"
 }
 
 // SetIdentified sets status to Identified
 func (incident *Incident) SetIdentified() {
 	incident.Status = 2
+	incident.StatusName = "Identified"
 }
 
 // SetWatching sets status to Watching
 func (incident *Incident) SetWatching() {
 	incident.Status = 3
+	incident.StatusName = "Watching"
 }
 
 // SetFixed sets status to Fixed
 func (incident *Incident) SetFixed() {
 	incident.Status = 4
+	incident.StatusName = "Fixed"
 }
